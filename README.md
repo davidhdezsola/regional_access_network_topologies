@@ -1,2 +1,2 @@
 # regional-access-network-topologies
-Hierarchical ISP access network topologies (single, dual and multi-layer aggregation) for network flow and optimization experiments.
+Implementation of hierarchical ISP access network topologies (single, dual and multi-layer aggregation) based on Figure 8 of the paper "Inferring Regional Access Network Topologies: Methods and Applications".
