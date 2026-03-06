@@ -1,0 +1,2 @@
+from .regional_access_network_topologies import generate_topology_fig8a_single_agg_layer
+from .regional_access_network_topologies import generate_topology_fig8c_aggregation_ring
