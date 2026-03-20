@@ -22,7 +22,7 @@ Node placement:
     - Backbone nodes are placed at the top.
     - Aggregation nodes are placed in a circular ring.
     - Edge nodes are placed around their primary aggregation node.
-    
+
 Parameters:
     n_edge (int): Number of edge nodes.
     n_aggregation (int): Number of aggregation nodes (set to 4 for Fig8c).
@@ -35,9 +35,9 @@ Expected Output:
 """
 
 n_edge = 8
-n_aggregation = 4
-n_backbone = 2
-edge_uplinks_max = 2
+n_aggregation = 5
+n_backbone = 3
+edge_uplinks_max = 5
 
 G = generate_topology_fig8c_aggregation_ring(
     n_edge=n_edge,
