@@ -41,7 +41,7 @@ def _add_random_bipartite_edges(G: nx.DiGraph,src: List[str],tgt: List[str],p: f
                     need -= 1
 
 
-def generate_topology_fig8a_single_agg_layer(n_edge: int = 30,n_agg: int = 2,n_backbone: int = 1,p_backbone_agg: float = 1.0,p_agg_edge: float = 0.25,edge_redundancy: int = 2,seed: int = 1) -> nx.DiGraph:
+def generate_topology_fig8a_single_agg_layer(internet: str='internet' ,n_edge: int = 30,n_agg: int = 2,n_backbone: int = 1,p_backbone_agg: float = 1.0,p_agg_edge: float = 0.25,edge_redundancy: int = 2,seed: int = 1) -> nx.DiGraph:
     """
     Generates a hierarchical network topology with a single aggregation layer
     . The topology consists of three layers: Backbone -> Aggregation -> Edge.
@@ -69,12 +69,15 @@ def generate_topology_fig8a_single_agg_layer(n_edge: int = 30,n_agg: int = 2,n_b
     backbone = [f"bb{i}" for i in range(n_backbone)]
     agg = [f"agg{i}" for i in range(n_agg)]
     edge = [f"e{i}" for i in range(n_edge)]
+    internet = "internet"
 
     G.add_nodes_from(backbone, layer="backbone")
     G.add_nodes_from(agg, layer="agg")
     G.add_nodes_from(edge, layer="edge")
+    G.add_node(internet, layer="internet")
 
-   
+    for bb in backbone:
+        G.add_edge(internet, bb)
     for i, bb in enumerate(backbone):
         target_agg = agg[i % n_agg]
         G.add_edge(bb, target_agg)
@@ -94,7 +97,7 @@ def generate_topology_fig8a_single_agg_layer(n_edge: int = 30,n_agg: int = 2,n_b
     return G
 
 
-def generate_topology_fig8c_aggregation_ring(n_edge: int = 80,n_aggregation: int = 8,n_backbone: int = 2,p_aggregation_to_edge: float = 0.25,edge_uplinks_max: int = 2,seed: int = 1) -> nx.DiGraph:
+def generate_topology_fig8c_aggregation_ring(internet: str='internet'  ,n_edge: int = 80,n_aggregation: int = 8,n_backbone: int = 2,p_aggregation_to_edge: float = 0.25,edge_uplinks_max: int = 2,seed: int = 1) -> nx.DiGraph:
     """
     Generates a hierarchical network topology with an ordered aggregation ring
     (Figure 8c structure). The topology consists of three layers: Backbone -> Aggregation -> Edge.
@@ -131,11 +134,15 @@ def generate_topology_fig8c_aggregation_ring(n_edge: int = 80,n_aggregation: int
     backbone = [f"bb{i}" for i in range(n_backbone)]
     aggregation = [f"agg{i}" for i in range(n_aggregation)]
     edge = [f"e{i}" for i in range(n_edge)]
-
+    internet = "internet"
+    
+    G.add_node(internet, layer="internet")
     G.add_nodes_from(backbone, layer="backbone")
     G.add_nodes_from(aggregation, layer="aggregation")
     G.add_nodes_from(edge, layer="edge")
 
+    for b in backbone:
+        G.add_edge(internet, b)
     for i, b in enumerate(backbone):
         a = aggregation[i % n_aggregation]
         G.add_edge(b, a)

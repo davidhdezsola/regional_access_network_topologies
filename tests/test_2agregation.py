@@ -35,8 +35,11 @@ Expected Output:
 n_edge = 6
 n_agg = 2
 n_backbone = 2
+internet='internet'
+
 
 G = generate_topology_fig8a_single_agg_layer(
+    internet=internet,
     n_edge=n_edge,
     n_agg=n_agg,
     n_backbone=n_backbone,
@@ -61,6 +64,7 @@ for i, node in enumerate(agg_nodes):
 
 for i, node in enumerate(edge_nodes):
     pos[node] = (i * 0.7, 0)
+pos[internet] = (0.5, 3)
 
 plt.figure(figsize=(10, 6))
 

@@ -38,8 +38,10 @@ n_edge = 8
 n_aggregation = 5
 n_backbone = 3
 edge_uplinks_max = 5
+internet='internet'
 
 G = generate_topology_fig8c_aggregation_ring(
+    internet=internet,
     n_edge=n_edge,
     n_aggregation=n_aggregation,
     n_backbone=n_backbone,
@@ -59,7 +61,7 @@ if backbone_nodes:
         x_backbone = [-2, 2] if len(backbone_nodes) == 2 else list(range(len(backbone_nodes)))
         for i, b in enumerate(backbone_nodes):
             pos[b] = (x_backbone[i], 3.5)
-
+pos[internet] = (0, 5) 
 R_agg = 2.0
 for i, a in enumerate(aggregation_nodes):
     theta = 2 * math.pi * i / len(aggregation_nodes)
