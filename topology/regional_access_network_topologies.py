@@ -78,9 +78,9 @@ def generate_topology_fig8a_single_agg_layer(internet: str='internet' ,n_edge: i
 
     for bb in backbone:
         G.add_edge(internet, bb)
-    for i, bb in enumerate(backbone):
-        target_agg = agg[i % n_agg]
-        G.add_edge(bb, target_agg)
+    for b in backbone:
+        for a in agg:
+            G.add_edge(b, a)
 
     # agg <-> agg: conectarlos entre sí
     for i in range(n_agg):
@@ -143,9 +143,10 @@ def generate_topology_fig8c_aggregation_ring(internet: str='internet'  ,n_edge: 
 
     for b in backbone:
         G.add_edge(internet, b)
-    for i, b in enumerate(backbone):
-        a = aggregation[i % n_aggregation]
-        G.add_edge(b, a)
+    for b in backbone:
+        for a in aggregation:
+            G.add_edge(b, a)
+
 
     #aggregation en anillo
     for i in range(n_aggregation):
