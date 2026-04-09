@@ -114,6 +114,7 @@ def generate_topology_fig8c_aggregation_ring(internet: str='internet'  ,n_edge: 
         p_backbone_agg (float): Probability of connecting backbone nodes to aggregation nodes.
         p_agg_edge (float): Probability of connecting aggregation nodes to edge nodes.
         edge_redundancy (int): Number of aggregation nodes each edge node connects to.
+        edge_uplinks_max (int): maximum number of uplinks in an edge node
         seed (int): Random seed for reproducibility.
 
     Returns:
