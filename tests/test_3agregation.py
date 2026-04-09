@@ -77,21 +77,32 @@ for i, a in enumerate(sorted(aggregation_nodes)):
 
     pos[a] = (x, y)
 
-# EDGE
+# ========================
+# EDGE (robusto + dual-homing)
+# ========================
 
-edge_groups = {a: [] for a in aggregation_nodes}
+for e in range(n_edge):
+    e_id = f"e{e}"
+    sw1, sw2 = f"{e_id}_sw1", f"{e_id}_sw2"
 
-for e in edge_nodes:
-    parents = [u for u in G.predecessors(e) if u in aggregation_nodes]
-    if parents:
-        edge_groups[parents[0]].append(e)
+    # aggregations padres de cada switch
+    parents_sw1 = [u for u in G.predecessors(sw1) if u in aggregation_nodes]
+    parents_sw2 = [u for u in G.predecessors(sw2) if u in aggregation_nodes]
 
-for a in aggregation_nodes:
-    x0, y0 = pos[a]
-    group = edge_groups[a]
+    if parents_sw1 and parents_sw2:
+        a1 = parents_sw1[0]
+        a2 = parents_sw2[0]
 
-    for i, e in enumerate(group):
-        pos[e] = (x0 + (i - len(group)/2)*0.6, y0 - 1.2)
+        x1, y1 = pos[a1]
+        x2, y2 = pos[a2]
+
+        # punto medio entre aggregations
+        x_mid = (x1 + x2) / 2
+        y_mid = min(y1, y2) - 1.2
+
+        # separar ligeramente los switches
+        pos[sw1] = (x_mid - 0.25, y_mid)
+        pos[sw2] = (x_mid + 0.25, y_mid)
 
 # PGW
 

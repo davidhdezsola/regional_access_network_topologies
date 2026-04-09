@@ -1,7 +1,7 @@
 import random
 import networkx as nx
 from typing import List, Optional, Tuple
-
+from collections import defaultdict
 def _add_random_bipartite_edges(G: nx.DiGraph,src: List[str],tgt: List[str],p: float,min_deg_tgt: int = 1,max_deg_tgt: Optional[int] = None,rng: Optional[random.Random] = None,):
     """
     Adds random edges from 'src' to 'tgt' with probability 'p' and ensures that
@@ -180,39 +180,26 @@ def generate_topology_fig8c_aggregation_ring(internet: str = 'internet',n_edge: 
         G.add_edge(a2, a1)
 
     # AGG → EDGE 
-    edge_parents = {e: set() for e in edge}
-
-    for i, a in enumerate(aggregation):
-        e = edge[i % n_edge]
-        if len(edge_parents[e]) < edge_uplinks_max:
-            edge_parents[e].add(a)
-        else:
-            for ee in edge:
-                if len(edge_parents[ee]) < edge_uplinks_max:
-                    edge_parents[ee].add(a)
-                    break
+    agg_load = defaultdict(int)
 
     for e in edge:
-        if len(edge_parents[e]) == 0:
-            edge_parents[e].add(rng.choice(aggregation))
-
-    for e in edge:
-        available = [a for a in aggregation if a not in edge_parents[e]]
-        rng.shuffle(available)
-
-        for a in available:
-            if len(edge_parents[e]) >= edge_uplinks_max:
-                break
-            if rng.random() < p_aggregation_to_edge:
-                edge_parents[e].add(a)
-
-    # AGG → EDGE SWITCHES
-
-    for e, parents in edge_parents.items():
         sw1, sw2 = edge_switches[e]
-        for a in parents:
-            G.add_edge(a, sw1)
-            G.add_edge(a, sw2)
+
+        # elegir los dos aggregations menos cargados
+        sorted_aggs = sorted(aggregation, key=lambda a: agg_load[a])
+
+        a1 = sorted_aggs[0]
+        a2 = sorted_aggs[1]
+
+        # conectar cada switch a un aggregation distinto
+        G.add_edge(a1, sw1)
+        G.add_edge(a2, sw2)
+
+        # actualizar carga
+        agg_load[a1] += 1
+        agg_load[a2] += 1
+
+   
     
     # EDGE → PGW 
     for e in edge:
