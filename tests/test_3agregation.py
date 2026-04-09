@@ -6,39 +6,15 @@ import networkx as nx
 import math
 
 from topology import generate_topology_fig8c_aggregation_ring
-"""
-Test for generating and visualizing the Fig8c topology with an aggregation ring.
 
-This test creates a hierarchical network topology with three layers:
-Backbone -> Aggregation -> Edge. The topology is generated using the 
-`generate_topology_fig8c_aggregation_ring` function and visualized with `matplotlib`.
 
-Topology structure:
-    - Backbone nodes connect to aggregation nodes.
-    - Aggregation nodes are connected in a ring structure.
-    - Edge nodes are redundantly connected to the aggregation nodes.
+# PARÁMETROS
 
-Node placement:
-    - Backbone nodes are placed at the top.
-    - Aggregation nodes are placed in a circular ring.
-    - Edge nodes are placed around their primary aggregation node.
-
-Parameters:
-    n_edge (int): Number of edge nodes.
-    n_aggregation (int): Number of aggregation nodes (set to 4 for Fig8c).
-    n_backbone (int): Number of backbone nodes (set to 2 for Fig8c).
-    edge_uplinks_max (int): Maximum number of uplinks each edge node can have.
-
-Expected Output:
-    A visual representation of the Fig8c topology with nodes and edges
-    arranged in a hierarchical layout, with aggregation nodes forming a ring.
-"""
-
-n_edge = 8
+n_edge = 6
 n_aggregation = 5
-n_backbone = 3
-edge_uplinks_max = 5
-internet='internet'
+n_backbone = 2
+edge_uplinks_max = 3
+internet = 'internet'
 
 G = generate_topology_fig8c_aggregation_ring(
     internet=internet,
@@ -50,80 +26,110 @@ G = generate_topology_fig8c_aggregation_ring(
     seed=1
 )
 
-
+# CLASIFICACIÓN DE NODOS
 
 backbone_nodes = [n for n, d in G.nodes(data=True) if d["layer"] == "backbone"]
 aggregation_nodes = [n for n, d in G.nodes(data=True) if d["layer"] == "aggregation"]
 edge_nodes = [n for n, d in G.nodes(data=True) if d["layer"] == "edge"]
+pgw_nodes = [n for n, d in G.nodes(data=True) if d["layer"] == "pgw"]
+wan_nodes = [n for n, d in G.nodes(data=True) if d["layer"] == "wan"]
+
 pos = {}
 
-if backbone_nodes:
-        x_backbone = [-2, 2] if len(backbone_nodes) == 2 else list(range(len(backbone_nodes)))
-        for i, b in enumerate(backbone_nodes):
-            pos[b] = (x_backbone[i], 3.5)
-pos[internet] = (0, 5) 
-R_agg = 2.0
-for i, a in enumerate(aggregation_nodes):
-    theta = 2 * math.pi * i / len(aggregation_nodes)
-    x = R_agg * math.cos(theta)
-    y = R_agg * math.sin(theta)
+# INTERNET
+
+pos[internet] = (0, 5)
+
+# BACKBONE 
+
+bb_groups = {}
+for n in backbone_nodes:
+    bb = n.split("_")[0]
+    bb_groups.setdefault(bb, []).append(n)
+
+x_spacing = 3
+for i, (bb, switches) in enumerate(sorted(bb_groups.items())):
+    x_center = - (len(bb_groups)-1)*x_spacing/2 + i*x_spacing
+
+    for j, sw in enumerate(sorted(switches)):
+        pos[sw] = (x_center + (j-0.5)*0.5, 4)
+
+# AGGREGATION 
+
+agg_to_bb = {}
+for u, v in G.edges():
+    if u in backbone_nodes and v in aggregation_nodes:
+        agg_to_bb[v] = u.split("_")[0]
+
+agg_groups = {bb: [] for bb in bb_groups}
+for a in aggregation_nodes:
+    agg_groups[agg_to_bb[a]].append(a)
+
+# curva global (arco)
+total_aggs = len(aggregation_nodes)
+R = 3.5
+
+for i, a in enumerate(sorted(aggregation_nodes)):
+    theta = math.pi * (i / (total_aggs - 1))  # arco (no círculo completo)
+
+    x = R * math.cos(theta)
+    y = 2 + 0.8 * math.sin(theta)
+
     pos[a] = (x, y)
 
+# EDGE
 
 edge_groups = {a: [] for a in aggregation_nodes}
-unassigned = []
 
 for e in edge_nodes:
     parents = [u for u in G.predecessors(e) if u in aggregation_nodes]
     if parents:
         edge_groups[parents[0]].append(e)
-    else:
-        unassigned.append(e)
 
-R_edge = 0.9
 for a in aggregation_nodes:
     x0, y0 = pos[a]
     group = edge_groups[a]
-    k = len(group)
 
-    if k == 0:
-        continue
+    for i, e in enumerate(group):
+        pos[e] = (x0 + (i - len(group)/2)*0.6, y0 - 1.2)
 
-    base_angle = math.atan2(y0, x0)
+# PGW
 
-    spread = math.pi / 3
-    if k == 1:
-        angles = [base_angle]
-    else:
-        angles = [
-            base_angle - spread / 2 + i * spread / (k - 1)
-            for i in range(k)
-        ]
+for pgw in pgw_nodes:
+    parent = list(G.predecessors(pgw))[0]
+    if parent in pos:
+        x, y = pos[parent]
+        pos[pgw] = (x, y - 1)
 
-    for e, ang in zip(group, angles):
-        xe = x0 + R_edge * math.cos(ang)
-        ye = y0 + R_edge * math.sin(ang)
-        pos[e] = (xe, ye)
+# WAN
 
-for i, e in enumerate(unassigned):
-    pos[e] = (-1 + i * 0.5, -3.5)
+for wan in wan_nodes:
+    edge_id = "e" + wan.replace("wan", "")
 
-plt.figure(figsize=(10, 8))
+    pgw1 = f"{edge_id}_pgw1"
+    pgw2 = f"{edge_id}_pgw2"
 
-nx.draw_networkx_nodes(
-    G, pos, nodelist=backbone_nodes, node_color="#e57373", node_size=1200, label="backbone"
-)
-nx.draw_networkx_nodes(
-    G, pos, nodelist=aggregation_nodes, node_color="#e6d96a", node_size=1200, label="aggregation ring"
-)
-nx.draw_networkx_nodes(
-    G, pos, nodelist=edge_nodes, node_color="#a8d0df", node_size=800, label="edge"
-)
+    if pgw1 in pos and pgw2 in pos:
+        x = (pos[pgw1][0] + pos[pgw2][0]) / 2
+        y = pos[pgw1][1] - 1.2
+        pos[wan] = (x, y)
 
-nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=18, width=1.6)
-nx.draw_networkx_labels(G, pos, font_size=10)
+# DIBUJO
 
-plt.title("Topology Fig8c - ordered aggregation ring")
+plt.figure(figsize=(11, 9))
+
+nx.draw_networkx_nodes(G, pos, nodelist=[internet], node_color="black", node_size=900, label="internet")
+
+nx.draw_networkx_nodes(G, pos, nodelist=backbone_nodes, node_color="#e57373", node_size=1200, label="backbone")
+nx.draw_networkx_nodes(G, pos, nodelist=aggregation_nodes, node_color="#e6d96a", node_size=1200, label="aggregation")
+nx.draw_networkx_nodes(G, pos, nodelist=edge_nodes, node_color="#a8d0df", node_size=800, label="edge")
+nx.draw_networkx_nodes(G, pos, nodelist=pgw_nodes, node_color="#90caf9", node_size=700, label="pgw")
+nx.draw_networkx_nodes(G, pos, nodelist=wan_nodes, node_color="#b0bec5", node_size=900, label="wan")
+
+nx.draw_networkx_edges(G, pos, arrows=False, width=1.5, alpha=0.6)
+nx.draw_networkx_labels(G, pos, font_size=8)
+
+plt.title("Fig8c topology (clean hierarchical layout)")
 plt.legend()
 plt.axis("off")
 plt.tight_layout()
