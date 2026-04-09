@@ -77,9 +77,7 @@ for i, a in enumerate(sorted(aggregation_nodes)):
 
     pos[a] = (x, y)
 
-# ========================
-# EDGE (robusto + dual-homing)
-# ========================
+# EDGE 
 
 for e in range(n_edge):
     e_id = f"e{e}"

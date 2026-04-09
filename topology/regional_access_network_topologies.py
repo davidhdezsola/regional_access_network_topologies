@@ -97,8 +97,7 @@ def generate_topology_fig8a_single_agg_layer(internet: str='internet' ,n_edge: i
     return G
 
 
-import networkx as nx
-import random
+
 
 def generate_topology_fig8c_aggregation_ring(internet: str = 'internet',n_edge: int = 80,n_aggregation: int = 8,n_backbone: int = 2, p_aggregation_to_edge: float = 0.25, edge_uplinks_max: int = 2, seed: int = 1) -> nx.DiGraph:
 
